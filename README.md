@@ -2,9 +2,9 @@ This is `index-tree`, written by Keith Thompson, Keith.S.Thompson@gmail.com
 
 It's a Perl script that generates index files for a specified
 directory tree, storing information in a created `.index` directory.
-For example, all `".c` files are listed in `.index/c`.
+For example, all `.c` files are listed in `.index/c`.
 
-Invoke with "-help" to display the following usage message:
+Invoke with `-help` to display the following usage message:
 
     Usage: index-tree [options] directory
     Generate index information for the specified directory and all its
