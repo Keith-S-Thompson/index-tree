@@ -1,0 +1,194 @@
+#!/usr/bin/perl
+
+# index-tree: Index a specified directory tree, storing information in a
+# created ".index" directory.  For example, all "*.c" files are listed in
+# ".index/c".
+# 
+# TODO:
+# 
+#     Generate a reverse-sorted list, so files with the same suffix
+#     are grouped together, to minimize closing and re-opening
+#     generated files.
+#
+#     Optionally index text, binary, and utf-16 files (see "classify",
+#     not yet released).  Think about how to generate these lists without
+#     storing them in memory.
+#
+#     Optionally use iconv to generate utf-8 translations of utf-16
+#     files.  Remove generated utf-8 file if iconv fails (likely
+#     because of a false positive from "classify" or equivalent.
+#
+#     Add an option to continue processing after some errors (?).
+#
+#     Add POD documentation
+
+use strict;
+use warnings;
+
+use File::Spec ();
+use Getopt::Long ();
+
+my $Program_Name = (File::Spec->splitpath($0))[2];
+
+my %Opt = ();
+my @Opts = ( \%Opt, qw( help!
+                        skip-rcs!
+                        skip-cvs!
+                        skip-svn!
+                        skip-hg!
+                        skip-git!
+                        skip-version-control!
+                        ignore-case!
+                        debugging! ) );
+Getopt::Long::GetOptions @Opts or Usage();
+Usage() if $Opt{help};
+Usage() if scalar @ARGV != 1;
+
+my $Dir = $ARGV[0];
+die "$Dir does not exist\n"     if not -e $Dir;
+die "$Dir is not a directory\n" if not -d $Dir;
+
+my $index_dir         = "$Dir/.index";
+my $all_unsorted_file = "$index_dir/.all.unsorted";
+my $all_file          = "$index_dir/.all";
+my $file_file         = "$index_dir/.file";
+
+mkdir $index_dir or die "$index_dir: $!\n";
+open my $ALL_UNSORTED, '>', $all_unsorted_file or die "$all_unsorted_file: $!\n";
+
+my %skip = ( "$index_dir/\n"        => 1,
+             "$all_unsorted_file\n" => 1 );
+
+my @find_command = ('find', $Dir);
+
+my @skip_dirs = ();
+if ($Opt{'skip-version-control'}) {
+    @skip_dirs = qw(RCS CVS .svn .hg .git);
+}
+else {
+    push @skip_dirs, 'RCS'  if $Opt{'skip-rcs'};
+    push @skip_dirs, 'CVS'  if $Opt{'skip-cvs'};
+    push @skip_dirs, '.svn' if $Opt{'skip-svn'};
+    push @skip_dirs, '.hg'  if $Opt{'skip-hg'};
+    push @skip_dirs, '.git' if $Opt{'skip-git'};
+}
+
+if (@skip_dirs) {
+    my @skip_args = qw/-type d (/;
+    foreach my $dir (@skip_dirs) {
+        push @skip_args, '-name', $dir, '-o';
+    }
+    pop @skip_args; # delete final '-o'
+    push @skip_args, qw/) -prune -o/;
+    push @find_command, @skip_args;
+}
+
+push @find_command, qw(-type d -printf), "%p/\\n",
+                    qw(-o -print);
+
+Debug("% @find_command\n");
+
+open my $FIND, '-|', @find_command or die "find: $!\n";
+while (my $line = <$FIND>) {
+    next if $skip{$line};
+    #
+    # Delete leading "./" unless that's the entire line.
+    # The length test allows for the trailing "\n".
+    #
+    if (length $line > 3) {
+        $line =~ s|^\./||;
+    }
+    print $ALL_UNSORTED $line;
+}
+close $FIND or die "find: $!\n";
+close $ALL_UNSORTED or die "$all_unsorted_file: $!\n";
+
+my $sort_command = "sort";
+$sort_command .= " -f" if $Opt{'ignore-case'};
+$sort_command .= " $all_unsorted_file > $all_file";
+my $sort_result = system $sort_command;
+if ($sort_result != 0) {
+    die sprintf("sort: system() returned 0x%x\n", $sort_result);
+}
+if (-s $all_file != -s $all_unsorted_file) {
+    die sprintf("Size mismatch:\n%10d %s\n%10d %s\n",
+                $all_file, -s $all_file,
+                $all_unsorted_file, -s $all_unsorted_file);
+}
+unlink $all_unsorted_file;
+
+my $SUFFIX;
+my $curr_suffix = undef;
+my $suffix_file = undef;
+open my $ALL, '<', $all_file or die "$all_file: $!\n";
+open my $FILES, '>', $file_file or die "$file_file: $!\n";
+while (my $filename = <$ALL>) {
+    print $FILES $filename if $filename !~ /\/$/;
+    chomp $filename;
+    my $suffix = Suffix($filename);
+    if (not defined $curr_suffix or $suffix ne $curr_suffix) {
+        if (defined $suffix_file) {
+            close $SUFFIX or die "$suffix_file: $!\n";
+        }
+        $suffix_file = "$index_dir/$suffix";
+        open $SUFFIX, '>>', $suffix_file or die "$suffix_file: $!\n";
+        $curr_suffix = $suffix;
+    }
+    print $SUFFIX "$filename\n" or die "$suffix_file: $!\n";
+}
+close $ALL or die "$all_file: $!\n";
+if (defined $suffix_file) {
+    close $SUFFIX or die "$suffix_file: $!\n";
+}
+
+########################################################################
+
+sub Suffix {
+    my($name) = @_;
+    if ($name =~ m|/$|) {
+        return '.dir';
+    }
+    else {
+        $name =~ s|.*/||;
+        if ($name =~ /\.([^.]+)$/) {
+            if ($Opt{'ignore-case'}) {
+                return lc $1;
+            }
+            else {
+                return $1;
+            }
+        }
+        else {
+            return '.nosuffix';
+        }
+    }
+} # Suffix
+
+# ----------------------------------------------------------------------
+
+sub Debug {
+    print @_ if $Opt{debugging};
+} # Debug
+
+# ----------------------------------------------------------------------
+
+sub Usage {
+    print <<"EOF";
+@{_}Usage: $Program_Name [options] directory
+Generate index information for the specified directory and all its
+descendents, stored in .index subdirectory.
+Options may be abbreviated uniquely
+Options:
+    -help          Show this message and exit.
+    -skip-rcs      Ignore any RCS directories and their contents
+    -skip-cvs      Ignore any CVS directories and their contents
+    -skip-svn      Ignore any .svn directories and their contents
+    -skip-hg       Ignore any .hg directories and their contents (Mercurial)
+    -skip-git      Ignore any .git directories and their contents
+    -skip-version-control
+                   Ignore all of the above
+    -ignore-case   Treat foo.C and foo.c as having the same suffix
+    -debugging     Show debugging output
+EOF
+    exit 1;
+} # Usage
