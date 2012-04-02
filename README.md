@@ -2,6 +2,7 @@ This is `index-tree`, written by Keith Thompson, Keith.S.Thompson@gmail.com
 
 It's a Perl script that generates index files for a specified
 directory tree, storing information in a created `.index` directory.
+Each index file is a sorted list of all files with the same suffix.
 For example, all `.c` files are listed in `.index/c`.
 
 Invoke with `-help` to display the following usage message:
