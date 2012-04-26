@@ -27,6 +27,7 @@ use warnings;
 
 use File::Spec ();
 use Getopt::Long ();
+use File::Find ();
 
 my $Program_Name = (File::Spec->splitpath($0))[2];
 
@@ -61,9 +62,9 @@ my %skip = ( "$index_dir/\n"        => 1,
 
 my @find_command = ('find', $Dir);
 
-my @skip_dirs = ();
+my @skip_dirs = qw(.index);
 if ($Opt{'skip-version-control'}) {
-    @skip_dirs = qw(RCS CVS .svn .hg .git);
+    push @skip_dirs, qw(RCS CVS .svn .hg .git);
 }
 else {
     push @skip_dirs, 'RCS'  if $Opt{'skip-rcs'};
@@ -73,35 +74,10 @@ else {
     push @skip_dirs, '.git' if $Opt{'skip-git'};
 }
 
-if (@skip_dirs) {
-    my @skip_args = qw/-type d (/;
-    foreach my $dir (@skip_dirs) {
-        push @skip_args, '-name', $dir, '-o';
-    }
-    pop @skip_args; # delete final '-o'
-    push @skip_args, qw/) -prune -o/;
-    push @find_command, @skip_args;
-}
+my %skip_dir = map { $_ => 1 } @skip_dirs;
 
-push @find_command, qw(-type d -printf), "%p/\\n",
-                    qw(-o -print);
-
-Debug("% @find_command\n");
-
-open my $FIND, '-|', @find_command or die "find: $!\n";
-while (my $line = <$FIND>) {
-    next if $skip{$line};
-    #
-    # Delete leading "./" unless that's the entire line.
-    # The length test allows for the trailing "\n".
-    #
-    if (length $line > 3) {
-        $line =~ s|^\./||;
-    }
-    print $ALL_UNSORTED $line;
-}
-close $FIND or die "find: $!\n";
-close $ALL_UNSORTED or die "$all_unsorted_file: $!\n";
+no warnings 'File::Find';
+File::Find::find(\&Wanted, $Dir);
 
 my $sort_command = "sort";
 $sort_command .= " -f" if $Opt{'ignore-case'};
@@ -142,6 +118,19 @@ if (defined $suffix_file) {
 }
 
 ########################################################################
+
+sub Wanted {
+    my $is_dir = -d $File::Find::name;
+    my $marker = $is_dir ? '/' : '';
+    if ($is_dir and $skip_dir{$_}) {
+        $File::Find::prune = 1;
+    }
+    else {
+        print $ALL_UNSORTED "$File::Find::name$marker\n";
+    }
+} # Wanted
+
+# ----------------------------------------------------------------------
 
 sub Suffix {
     my($name) = @_;
