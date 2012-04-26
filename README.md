@@ -5,10 +5,6 @@ directory tree, storing information in a created `.index` directory.
 Each index file is a sorted list of all files with the same suffix.
 For example, all `.c` files are listed in `.index/c`.
 
-It invokes the Unix `find` command.  I've tested it with GNU `find`;
-it may or may not work with other versions of `find`.  (TODO: Convert
-to use the Perl `File::Find` module.)
-
 Invoke with `-help` to display the following usage message:
 
     Usage: index-tree [options] directory
