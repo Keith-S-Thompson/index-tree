@@ -1,4 +1,9 @@
+Copyright (C) 2012 Keith Thompson
+
 This is `index-tree`, written by Keith Thompson, Keith.S.Thompson@gmail.com
+
+`index-tree` is released under GPL version 2 or later.  See the
+header comments in `index-tree` and the file `COPYING`.
 
 It's a Perl script that generates index files for a specified
 directory tree, storing information in a created `.index` directory.

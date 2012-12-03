@@ -1,5 +1,20 @@
 #!/usr/bin/perl
 
+# Copyright (C) 2012 Keith Thompson
+
+# This file is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+
 # index-tree: Index a specified directory tree, storing information in a
 # created ".index" directory.  For example, all "*.c" files are listed in
 # ".index/c".
@@ -28,22 +43,25 @@ use warnings;
 use File::Spec ();
 use Getopt::Long ();
 use File::Find ();
+use Pod::Usage ();
 
 my $Program_Name = (File::Spec->splitpath($0))[2];
 
 my %Opt = ();
 my @Opts = ( \%Opt, qw( help!
+                        man!
                         skip-rcs!
                         skip-cvs!
                         skip-svn!
                         skip-hg!
                         skip-git!
-                        skip-version-control!
+                        skip-version-control|skip!
                         ignore-case!
                         debugging! ) );
-Getopt::Long::GetOptions @Opts or Usage();
-Usage() if $Opt{help};
-Usage() if scalar @ARGV != 1;
+Getopt::Long::GetOptions @Opts or Pod::Usage::pod2usage(1);
+Pod::Usage::pod2usage(1) if $Opt{help};
+Pod::Usage::pod2usage(-verbose => 2) if $Opt{man};
+Pod::Usage::pod2usage(1) if scalar @ARGV != 1;
 
 my $Dir = $ARGV[0];
 die "$Dir does not exist\n"     if not -e $Dir;
@@ -162,22 +180,78 @@ sub Debug {
 # ----------------------------------------------------------------------
 
 sub Usage {
-    print <<"EOF";
-@{_}Usage: $Program_Name [options] directory
-Generate index information for the specified directory and all its
-descendents, stored in .index subdirectory.
-Options may be abbreviated uniquely
-Options:
-    -help          Show this message and exit.
-    -skip-rcs      Ignore any RCS directories and their contents
-    -skip-cvs      Ignore any CVS directories and their contents
-    -skip-svn      Ignore any .svn directories and their contents
-    -skip-hg       Ignore any .hg directories and their contents (Mercurial)
-    -skip-git      Ignore any .git directories and their contents
-    -skip-version-control
-                   Ignore all of the above
-    -ignore-case   Treat foo.C and foo.c as having the same suffix
-    -debugging     Show debugging output
-EOF
-    exit 1;
+    print ">>> Usage()\n";
+    Pod::Usage::pod2usage(42);
+    print ">>> Leaving Usage()\n";
+    return;
+    if (@_) {
+        Pod::Usage::pod2usage(message => "@_");
+    }
+    else {
+        Pod::Usage::pod2usage();
+    }
 } # Usage
+
+# sub Usage {
+#     print <<"EOF";
+# @{_}Usage: $Program_Name [options] directory
+# Generate index information for the specified directory and all its
+# descendents, stored in .index subdirectory.
+# Options may be abbreviated uniquely
+# Options:
+#     -help          Show this message and exit.
+#     -skip-rcs      Ignore any RCS directories and their contents
+#     -skip-cvs      Ignore any CVS directories and their contents
+#     -skip-svn      Ignore any .svn directories and their contents
+#     -skip-hg       Ignore any .hg directories and their contents (Mercurial)
+#     -skip-git      Ignore any .git directories and their contents
+#     -skip-version-control
+#                    Ignore all of the above
+#     -ignore-case   Treat foo.C and foo.c as having the same suffix
+#     -debugging     Show debugging output
+# EOF
+#     exit 1;
+# } # Usage
+
+=pod
+
+=head1 NAME
+
+index-tree - Generate index information for the specified directory
+
+=head1 SYNOPSIS
+
+index-tree [options] directory
+
+Generate index information for the specified directory and all its
+descendents, storing it in a C<.index> subdirectory.
+
+=head1 DESCRIPTION
+
+For each file suffix, a list of files with that suffix is created
+under C<.index>; for example, C<.index/txt> will contain a list of
+all C<*.txt> files anywhere under the specified directory.
+
+In addition:
+
+C<.index/.all> is a list of all files and directories
+
+C<.index/.dir> is a list of all directories
+
+C<.index/.file> is a list of all files
+
+C<.index/.nosuffix> is a list of all files whose names do not contain C<.>
+
+=head1 OPTIONS
+
+ Options may be abbreviated uniquely
+ -help          Show this message and exit.
+ -skip-rcs      Ignore any RCS directories and their contents
+ -skip-cvs      Ignore any CVS directories and their contents
+ -skip-svn      Ignore any .svn directories and their contents
+ -skip-hg       Ignore any .hg directories and their contents (Mercurial)
+ -skip-git      Ignore any .git directories and their contents
+ -skip-version-control
+                Ignore all of the above
+ -ignore-case   Treat foo.C and foo.c as having the same suffix
+ -debugging     Show debugging output
