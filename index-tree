@@ -31,11 +31,11 @@
 #
 #     Optionally use iconv to generate utf-8 translations of utf-16
 #     files.  Remove generated utf-8 file if iconv fails (likely
-#     because of a false positive from "classify" or equivalent.
+#     because of a false positive from "classify" or equivalent).
+#
+#     Strip leading "./"
 #
 #     Add an option to continue processing after some errors (?).
-#
-#     Add POD documentation
 
 use strict;
 use warnings;
@@ -138,7 +138,7 @@ if (defined $suffix_file) {
 ########################################################################
 
 sub Wanted {
-    my $is_dir = -d $File::Find::name;
+    my $is_dir = -d $_;
     my $marker = $is_dir ? '/' : '';
     if ($is_dir and $skip_dir{$_}) {
         $File::Find::prune = 1;
@@ -246,6 +246,7 @@ C<.index/.nosuffix> is a list of all files whose names do not contain C<.>
 
  Options may be abbreviated uniquely
  -help          Show this message and exit.
+ -man           Show man page
  -skip-rcs      Ignore any RCS directories and their contents
  -skip-cvs      Ignore any CVS directories and their contents
  -skip-svn      Ignore any .svn directories and their contents
