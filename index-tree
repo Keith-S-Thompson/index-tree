@@ -33,8 +33,6 @@
 #     files.  Remove generated utf-8 file if iconv fails (likely
 #     because of a false positive from "classify" or equivalent).
 #
-#     Strip leading "./"
-#
 #     Add an option to continue processing after some errors (?).
 
 use strict;
@@ -144,7 +142,11 @@ sub Wanted {
         $File::Find::prune = 1;
     }
     else {
-        print $ALL_UNSORTED "$File::Find::name$marker\n";
+        my $name = $File::Find::name;
+        if ($name =~ m{^\./.}) {
+            $name = substr($name, 2);
+        }
+        print $ALL_UNSORTED "$name$marker\n";
     }
 } # Wanted
 
