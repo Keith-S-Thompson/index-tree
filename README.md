@@ -1,4 +1,4 @@
-Copyright (C) 2012 Keith Thompson
+Copyright (C) 2013 Keith Thompson
 
 This is `index-tree`, written by Keith Thompson, Keith.S.Thompson@gmail.com
 
