@@ -34,6 +34,9 @@
 #     because of a false positive from "classify" or equivalent).
 #
 #     Add an option to continue processing after some errors (?).
+#
+#     Add an option to build the .index directory somewhere else; useful
+#     for read-only and/or shared directory trees.
 
 use strict;
 use warnings;
