@@ -18,25 +18,6 @@
 # index-tree: Index a specified directory tree, storing information in a
 # created ".index" directory.  For example, all "*.c" files are listed in
 # ".index/c".
-# 
-# TODO:
-# 
-#     Generate a reverse-sorted list, so files with the same suffix
-#     are grouped together, to minimize closing and re-opening
-#     generated files.
-#
-#     Optionally index text, binary, and utf-16 files (see "classify",
-#     not yet released).  Think about how to generate these lists without
-#     storing them in memory.
-#
-#     Optionally use iconv to generate utf-8 translations of utf-16
-#     files.  Remove generated utf-8 file if iconv fails (likely
-#     because of a false positive from "classify" or equivalent).
-#
-#     Add an option to continue processing after some errors (?).
-#
-#     Add an option to build the .index directory somewhere else; useful
-#     for read-only and/or shared directory trees.
 
 use strict;
 use warnings;
