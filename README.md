@@ -40,7 +40,7 @@ Invoke with `-help` to display the following usage message:
 - On Thu 2013-01-03, I checked in and pushed a change with in incorrect
   log message. I've corrected it using `git rebase` and `git push -f`.
   In short, I changed the history slightly. If you've fetched
-  this repository between Thu 2013-01-03 and Thu 2013-01-04, consider
-  deleting your copy and re-cloning. Sorry for any inconvience.
+  this repository between Thu 2013-01-03 and Fri 2013-01-04, consider
+  deleting your copy and re-cloning. Sorry for any inconvenience.
 
 - See `TODO.md` for possible changes in future versions.
