@@ -21,3 +21,6 @@
 - Add an option to build the .index directory in a specified location
   outside the index tree; useful for read-only and/or shared directory
   trees.
+
+- Add an option similar to `find`'s `-xdev`, to restrict the search
+  to a single filesystem.
