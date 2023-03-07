@@ -38,6 +38,7 @@ my @Opts = ( \%Opt, qw( help!
                         skip-hg!
                         skip-git!
                         skip-version-control|skip!
+                        skip-dir=s@
                         ignore-case!
                         debugging! ) );
 Getopt::Long::GetOptions @Opts or Pod::Usage::pod2usage(1);
@@ -72,6 +73,9 @@ else {
     push @skip_dirs, '.svn' if $Opt{'skip-svn'};
     push @skip_dirs, '.hg'  if $Opt{'skip-hg'};
     push @skip_dirs, '.git' if $Opt{'skip-git'};
+}
+if (defined $Opt{'skip-dir'}) {
+    push @skip_dirs, @{$Opt{'skip-dir'}};
 }
 
 my %skip_dir = map { $_ => 1 } @skip_dirs;
@@ -240,5 +244,6 @@ C<.index/.nosuffix> is a list of all files whose names do not contain C<.>
  -skip-git      Ignore any .git directories and their contents
  -skip-version-control
                 Ignore all of the above
+ -skip-dir DIR  Skip directories with specified name(s).
  -ignore-case   Treat foo.C and foo.c as having the same suffix
  -debugging     Show debugging output

@@ -1,4 +1,4 @@
-Copyright (C) 2013 Keith Thompson
+Copyright (C) 2023 Keith Thompson
 
 This is `index-tree`, written by Keith Thompson, Keith.S.Thompson@gmail.com
 
@@ -11,27 +11,29 @@ Each index file is a sorted list of all files with the same suffix.
 For example, all `.c` files are listed in `.index/c`.
 
 Invoke with `-help` to display the following usage message:
+```
+Usage:
+    index-tree [options] directory
 
-    Usage:
-        index-tree [options] directory
-    
-        Generate index information for the specified directory and all its
-        descendents, storing it in a ".index" subdirectory.
-    
-    Options:
-         Options may be abbreviated uniquely
-         -help          Show this message and exit.
-         -man           Show man page
-         -skip-rcs      Ignore any RCS directories and their contents
-         -skip-cvs      Ignore any CVS directories and their contents
-         -skip-svn      Ignore any .svn directories and their contents
-         -skip-hg       Ignore any .hg directories and their contents (Mercurial)
-         -skip-git      Ignore any .git directories and their contents
-         -skip-version-control
-                        Ignore all of the above
-         -ignore-case   Treat foo.C and foo.c as having the same suffix
-         -debugging     Show debugging output
-    
+    Generate index information for the specified directory and all its
+    descendents, storing it in a ".index" subdirectory.
+
+Options:
+     Options may be abbreviated uniquely
+     -help          Show this message and exit.
+     -man           Show man page
+     -skip-rcs      Ignore any RCS directories and their contents
+     -skip-cvs      Ignore any CVS directories and their contents
+     -skip-svn      Ignore any .svn directories and their contents
+     -skip-hg       Ignore any .hg directories and their contents (Mercurial)
+     -skip-git      Ignore any .git directories and their contents
+     -skip-version-control
+                    Ignore all of the above
+     -skip-dir DIR  Skip directories with specified name(s).
+     -ignore-case   Treat foo.C and foo.c as having the same suffix
+     -debugging     Show debugging output
+```
+
 **NOTES**
 
 - The version released Sat 2012-12-29 fixes a serious bug; previously
