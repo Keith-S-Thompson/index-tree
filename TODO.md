@@ -24,3 +24,6 @@
 
 - Add an option similar to `find`'s `-xdev`, to restrict the search
   to a single filesystem.
+
+- Bug: On a case-insensitive filesystem (Cygwin), .S and .s files
+  for example are grouped together.
